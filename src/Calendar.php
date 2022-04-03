@@ -3,6 +3,10 @@
 namespace Jiejunf\Calendar;
 
 
+use DateTimeInterface;
+use Jiejunf\Calendar\Components\Event;
+use Jiejunf\Calendar\Components\Timezone;
+
 /**
  * @method $this version(float $version = 2.0)
  * @method $this method(string $method = 'PUBLIC')
@@ -17,6 +21,7 @@ class Calendar extends Calendaring
         'CLASS'    => 'PUBLIC',
         'CALSCALE' => 'GREGORIAN',
     ];
+    protected string $timezone;
 
     public function name(string $name): static
     {
@@ -33,5 +38,29 @@ class Calendar extends Calendaring
     protected function blockName(): string
     {
         return "VCALENDAR";
+    }
+
+    public function setTimezone(string $timezone): Timezone
+    {
+        $timezoneComponent = new Timezone($timezone);
+        $this->timezone = $timezone;
+        $this->components['timezone'] = $timezoneComponent;
+        return $timezoneComponent;
+    }
+
+    public function setEvent(
+        string                   $summary,
+        DateTimeInterface|string $from,
+        DateTimeInterface|string $to,
+        bool                     $allDays = false
+    ): Event {
+        $event = new Event($summary, $from, $to, $allDays);
+        $this->components[] = $event;
+        return $event;
+    }
+
+    public function setEventAllDay(string $summary, DateTimeInterface|string $from, DateTimeInterface|string $to): Event
+    {
+        return $this->setEvent($summary, $from, $to, true);
     }
 }

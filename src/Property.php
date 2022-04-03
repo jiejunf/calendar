@@ -15,7 +15,7 @@ class Property
 
     public static function datetime(DateTimeInterface $datetime, string $timezone = null): static
     {
-        return new static($datetime->format('Ymd\This'), [
+        return new static($datetime->format('Ymd\THis'), empty($timezone) ? [] : [
             'TZID' => $timezone ?? $datetime->getTimezone()->getName(),
         ]);
     }
@@ -27,13 +27,18 @@ class Property
         ]);
     }
 
+    public static function attach(string $url, string $file_type)
+    {
+        return new static(sprintf('FMTTYPE=%s:%s', $file_type, $url));
+    }
+
     public function __toString(): string
     {
         $param = [];
         foreach ($this->params as $name => $value) {
-            $param[] = sprintf('%s=%s', $name, $value);
+            $param[] = sprintf(';%s=%s', $name, addcslashes($value, "\n"));
         }
-        $param = implode(';', $param);
-        return sprintf('%s:%s', $param, $this->data);
+        $param = implode('', $param);
+        return sprintf('%s:%s', $param, addcslashes($this->data, "\n"));
     }
 }

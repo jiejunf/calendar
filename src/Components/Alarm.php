@@ -19,7 +19,11 @@ class Alarm extends Calendaring
 
     public function __construct(string $trigger)
     {
-        $this->properties['TRIGGER'] = $trigger;
+        if (is_numeric($trigger)) {
+            $this->beforeAtMinutes(intval($trigger));
+        } else {
+            $this->properties['TRIGGER'] = $trigger;
+        }
     }
 
     public function beforeAtMinutes(int $minutes): static

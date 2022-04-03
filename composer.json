@@ -13,5 +13,7 @@
             "email": "jiejunwork@foxmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "php": ">=8"
+    }
 }

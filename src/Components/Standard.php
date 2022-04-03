@@ -8,11 +8,11 @@ use Jiejunf\Calendar\Calendaring;
  * @method $this tzOffsetFrom(string $from) = '+0800'
  * @method $this tzOffsetTo(string $to) = '+0800'
  * @method $this tzName(string $name) = 'CST'
- * @method $this dtStart(string $dt) = '19700101T000000'
+ * @method $this dtStart(string $dt = '19700101T000000')
  */
 class Standard extends Calendaring
 {
-    public function __construct($from, $to, $name, $start)
+    public function __construct($from, $to, $name, $start = '19700101T000000')
     {
         $this->properties = [
             'TZOFFSETFROM' => $from,

@@ -2,6 +2,8 @@
 
 namespace Jiejunf\Calendar;
 
+use Closure;
+
 abstract class Calendaring implements IcsComponent
 {
 
@@ -25,9 +27,9 @@ abstract class Calendaring implements IcsComponent
         $ics = [];
         foreach ($this->properties as $name => $property) {
             if ($property instanceof Property) {
-                $ics[] = sprintf('%s;%s', $name, $property);
+                $ics[] = sprintf('%s%s', $name, $property);
             } else {
-                $ics[] = sprintf('%s:%s', $name, addslashes($property));
+                $ics[] = sprintf('%s:%s', $name, addcslashes($property,"\n"));
             }
         }
         foreach ($this->components as $component) {
@@ -43,4 +45,10 @@ ICS;
     }
 
     abstract protected function blockName(): string;
+
+    public function tap(Closure $callback): static
+    {
+        call_user_func_array($callback, [$this]);
+        return $this;
+    }
 }

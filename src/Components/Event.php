@@ -2,6 +2,7 @@
 
 namespace Jiejunf\Calendar\Components;
 
+use DateTime;
 use DateTimeInterface;
 use Jiejunf\Calendar\Calendaring;
 use Jiejunf\Calendar\Property;
@@ -17,16 +18,15 @@ use Jiejunf\Calendar\Property;
  */
 class Event extends Calendaring
 {
-
-    public function __construct(string $summary, DateTimeInterface $from, DateTimeInterface $to, bool $allDay = false)
-    {
+    public function __construct(
+        string                             $summary,
+        protected DateTimeInterface|string $from,
+        protected DateTimeInterface|string $to,
+        protected bool                     $allDay = false
+    ) {
         $this->properties['SUMMARY'] = $summary;
-        if ($allDay) {
-            $days = $to->diff($from)->d;
-            $this->timeAllDay($from, $days + 1);
-        } else {
-            $this->time($from, $to);
-        }
+        $this->from = $this->parseTime($from);
+        $this->to = $this->parseTime($to);
     }
 
     public function url(Property|string $url): static
@@ -43,18 +43,20 @@ class Event extends Calendaring
         return 'VEVENT';
     }
 
-    public function time(DateTimeInterface $from, DateTimeInterface $to)
+    protected function time(DateTimeInterface $from, DateTimeInterface $to): static
     {
         unset($this->properties['DURATION']);
-        $this->properties['DTSTART'] = Property::datetime($from);
-        $this->properties['DTEND'] = Property::datetime($to);
+        $this->properties['DTSTART'] = $this->datetimeProp($from);
+        $this->properties['DTEND'] = $this->datetimeProp($to);
+        return $this;
     }
 
-    public function timeAllDay(DateTimeInterface $from, int $days)
+    protected function timeAllDay(DateTimeInterface $from, int $days): static
     {
         unset($this->properties['DTEND']);
-        $this->properties['DTSTART'] = Property::datetime($from);
+        $this->properties['DTSTART'] = $this->datetimeProp($from);
         $this->properties['DURATION'] = $days;
+        return $this;
     }
 
     public function description(string $desc): static
@@ -65,13 +67,52 @@ class Event extends Calendaring
 
     public function createdAt(DateTimeInterface $created_at): static
     {
-        $this->properties['DTSTAMP'] = Property::datetime($created_at);
+        $this->properties['DTSTAMP'] = $this->datetimeProp($created_at);
         return $this;
     }
 
     public function updatedAt(DateTimeInterface $updated_at): static
     {
-        $this->properties['LAST-MODIFIED'] = Property::datetime($updated_at);
+        $this->properties['LAST-MODIFIED'] = $this->datetimeProp($updated_at);
         return $this;
+    }
+
+    public function setAlarm(int $beforeAtMinutes = 0): Alarm
+    {
+        $alarm = new Alarm($beforeAtMinutes);
+        $this->components[] = $alarm;
+        return $alarm;
+    }
+
+    public function toIcs(): string
+    {
+        if (!isset($this->properties['UID'])) {
+            $this->uid($this->generateUid());
+        }
+        if ($this->allDay) {
+            $this->timeAllDay($this->from, $this->to->diff($this->from)->d + 1);
+        } else {
+            $this->time($this->from, $this->to);
+        }
+        return parent::toIcs();
+    }
+
+    protected function generateUid(): string
+    {
+        return md5(sprintf('%s%s%s%s',
+                           $this->from->format('YmdHis'),
+                           $this->to->format('YmdHis'),
+                           $this->properties['SUMMARY'],
+                           $this->properties['LOCATION'] ?? 'LOCATION-EMPTY'));
+    }
+
+    protected function datetimeProp(DateTimeInterface $datetime): Property
+    {
+        return Property::datetime($datetime, $this->properties['TZID'] ?? null);
+    }
+
+    protected function parseTime(DateTimeInterface|string $time): DateTimeInterface
+    {
+        return is_string($time) ? new DateTime(date('YmdHis', strtotime($time))) : $time;
     }
 }

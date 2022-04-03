@@ -2,6 +2,7 @@
 
 namespace Jiejunf\Calendar\Components;
 
+use DateTimeZone;
 use Jiejunf\Calendar\Calendaring;
 
 /**
@@ -28,5 +29,17 @@ class Timezone extends Calendaring
     protected function blockName(): string
     {
         return 'VTIMEZONE';
+    }
+
+    public function parseStandard(): Standard
+    {
+        $timezone = new DateTimeZone($this->properties['TZID']);
+        $now = time();
+        $transition = current($timezone->getTransitions($now, $now));
+        $offset = date('+Hi', $transition['offset']);
+        $abbr = $transition['abbr'];
+        $standard = new Standard($offset, $offset, $abbr);
+        $this->components['standard'] = $standard;
+        return $standard;
     }
 }
