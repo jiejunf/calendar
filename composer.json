@@ -1,0 +1,17 @@
+{
+    "name": "jiejunf/calendar",
+    "description": "Tool for generate calendar ics file",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Jiejunf\\Calendar\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "jiejunf",
+            "email": "jiejunwork@foxmail.com"
+        }
+    ],
+    "require": {}
+}
